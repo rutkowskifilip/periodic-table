@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { MatTableModule } from '@angular/material/table';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 export interface PeriodicElement {
   name: string;
@@ -32,12 +34,20 @@ const ELEMENT_DATA: PeriodicElement[] = [
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, MatTableModule],
+  imports: [RouterOutlet, MatTableModule, MatFormFieldModule, MatInputModule],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
 export class App {
+  filterTimeout: any;
   protected title = 'periodic-table';
   displayedColumns: string[] = ['position', 'name', 'weight', 'symbol'];
-  dataSource = ELEMENT_DATA;
+  dataSource = new MatTableDataSource(ELEMENT_DATA);
+  applyFilter(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    clearTimeout(this.filterTimeout);
+    this.filterTimeout = setTimeout(() => {
+      this.dataSource.filter = filterValue.trim().toLowerCase();
+    }, 2000);
+  }
 }
