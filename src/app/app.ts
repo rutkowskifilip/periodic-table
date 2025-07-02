@@ -1,4 +1,8 @@
-import { Component } from '@angular/core';
+import {
+  Component,
+  importProvidersFrom,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -6,6 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { EditDialog } from './edit-dialog/edit-dialog';
 import { MatDialog } from '@angular/material/dialog';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 export interface PeriodicElement {
   name: string;
   position: number;
@@ -42,16 +47,26 @@ const ELEMENT_DATA: PeriodicElement[] = [
     MatFormFieldModule,
     MatInputModule,
     CommonModule,
+    MatProgressSpinnerModule,
   ],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
 export class App {
-  constructor(private dialog: MatDialog) {}
+  constructor(private dialog: MatDialog, private cdr: ChangeDetectorRef) {}
+  isLoading = true;
+  dataSource = new MatTableDataSource<PeriodicElement>([]);
+  ngOnInit() {
+    setTimeout(() => {
+      this.isLoading = false;
+      this.dataSource = new MatTableDataSource(ELEMENT_DATA);
+      this.cdr.detectChanges(); // Dodaj tę linię
+    }, 1000);
+  }
   filterTimeout: any;
   protected title = 'periodic-table';
   displayedColumns: string[] = ['position', 'name', 'weight', 'symbol'];
-  dataSource = new MatTableDataSource(ELEMENT_DATA);
+
   editIndex: number | null = null;
   editValue: string = '';
   openEditDialog(index: number, field: keyof PeriodicElement) {
