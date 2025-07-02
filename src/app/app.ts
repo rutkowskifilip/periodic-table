@@ -1,9 +1,11 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-
+import { EditDialog } from './edit-dialog/edit-dialog';
+import { MatDialog } from '@angular/material/dialog';
 export interface PeriodicElement {
   name: string;
   position: number;
@@ -34,15 +36,42 @@ const ELEMENT_DATA: PeriodicElement[] = [
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, MatTableModule, MatFormFieldModule, MatInputModule],
+  imports: [
+    RouterOutlet,
+    MatTableModule,
+    MatFormFieldModule,
+    MatInputModule,
+    CommonModule,
+  ],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
 export class App {
+  constructor(private dialog: MatDialog) {}
   filterTimeout: any;
   protected title = 'periodic-table';
   displayedColumns: string[] = ['position', 'name', 'weight', 'symbol'];
   dataSource = new MatTableDataSource(ELEMENT_DATA);
+  editIndex: number | null = null;
+  editValue: string = '';
+  openEditDialog(index: number, field: keyof PeriodicElement) {
+    const dialogRef = this.dialog.open(EditDialog, {
+      data: {
+        value: this.dataSource.data[index][field],
+        position: field.toString(),
+      },
+      width: '250px',
+    });
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result !== null && result !== undefined) {
+        const data = this.dataSource.data.slice();
+        data[index] = { ...data[index], [field]: result };
+        this.dataSource.data = data;
+        this.dataSource.filter = this.dataSource.filter;
+        this.dataSource.sort = this.dataSource.sort;
+      }
+    });
+  }
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     clearTimeout(this.filterTimeout);
